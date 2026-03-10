@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 // Form data type
 interface FormData {
@@ -127,6 +127,160 @@ const steps = [
 export default function DiscoveryCall() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const generatePDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const concerns = formData.primaryConcerns.length > 0
+      ? formData.primaryConcerns.join(', ')
+      : 'None selected';
+
+    const hoursVal = parseFloat(formData.monthlyHoursWasted) || 0;
+    const missedVal = parseFloat(formData.lostRevenueFromMissedLeads) || 0;
+    const totalLoss = (hoursVal * 25) + missedVal;
+
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>${formData.dispensaryName || 'Discovery Call'} - SeamlessFlow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1a1a2e; padding: 40px; }
+  @page { size: letter; margin: 0.75in; }
+  .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #1a1a2e; padding-bottom: 20px; }
+  .header img { width: 180px; margin-bottom: 10px; }
+  .header h1 { font-size: 20pt; color: #1a1a2e; margin-bottom: 4px; }
+  .header p { font-size: 10pt; color: #666; }
+  .section { margin-bottom: 20px; page-break-inside: avoid; }
+  .section h2 { font-size: 13pt; color: #1a1a2e; border-bottom: 2px solid #eee; padding-bottom: 6px; margin-bottom: 10px; }
+  .section h3 { font-size: 11pt; color: #444; margin: 8px 0 4px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+  .field { margin-bottom: 6px; }
+  .field .label { font-size: 9pt; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .field .value { font-size: 11pt; font-weight: 500; }
+  .pain-box { background: #fff3f3; border-left: 4px solid #e74c3c; padding: 10px 14px; margin: 6px 0; border-radius: 4px; }
+  .money-box { background: #f0fff0; border: 2px solid #27ae60; padding: 16px; border-radius: 8px; text-align: center; margin: 12px 0; }
+  .money-box .amount { font-size: 28pt; font-weight: 700; color: #e74c3c; }
+  .money-box .sublabel { font-size: 10pt; color: #666; }
+  .summary-box { background: #f8f9ff; border: 1px solid #dde; padding: 12px 16px; border-radius: 6px; margin: 8px 0; }
+  .temp-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 10pt; }
+  .temp-hot { background: #ffe0e0; color: #c0392b; }
+  .temp-warm { background: #fff3e0; color: #e67e22; }
+  .temp-cold { background: #e0f0ff; color: #2980b9; }
+  .checklist { list-style: none; }
+  .checklist li { padding: 3px 0; font-size: 10pt; }
+  .checklist li::before { content: '☐ '; color: #999; }
+  .checklist li.checked::before { content: '☑ '; color: #27ae60; }
+  .footer { margin-top: 30px; padding-top: 15px; border-top: 2px solid #eee; text-align: center; font-size: 9pt; color: #999; }
+  .footer a { color: #1a1a2e; text-decoration: none; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+<div class="header">
+  <img src="https://seamlessflow.ai/assets/website%20homelogo.png" alt="SeamlessFlow">
+  <h1>Discovery Call Summary</h1>
+  <p>${formData.date} • ${formData.dispensaryName || 'Client'}</p>
+</div>
+
+<div class="section">
+  <h2>Business Information</h2>
+  <div class="grid">
+    <div class="field"><div class="label">Business Name</div><div class="value">${formData.dispensaryName || '—'}</div></div>
+    <div class="field"><div class="label">Contact</div><div class="value">${formData.contactName || '—'} (${formData.contactTitle || '—'})</div></div>
+    <div class="field"><div class="label">Phone</div><div class="value">${formData.phone || '—'}</div></div>
+    <div class="field"><div class="label">Email</div><div class="value">${formData.email || '—'}</div></div>
+    <div class="field"><div class="label">Location</div><div class="value">${formData.location || '—'}</div></div>
+    <div class="field"><div class="label">Website</div><div class="value">${formData.website || '—'}</div></div>
+    <div class="field"><div class="label">Years in Business</div><div class="value">${formData.yearsInBusiness || '—'}</div></div>
+    <div class="field"><div class="label">Employees</div><div class="value">${formData.employeeCount || '—'}</div></div>
+    <div class="field"><div class="label">Hours</div><div class="value">${formData.operatingHours || '—'}</div></div>
+    <div class="field"><div class="label">Has GBP</div><div class="value">${formData.hasGBP || '—'}</div></div>
+    <div class="field"><div class="label">Discovery Source</div><div class="value">${formData.discoverySource || '—'}</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Time Drains</h2>
+  <div class="field"><div class="label">Daily Bottlenecks</div><div class="value">${formData.dailyBottlenecks || '—'}</div></div>
+  <div class="field"><div class="label">Repetitive Tasks</div><div class="value">${formData.repetitiveTasks || '—'}</div></div>
+  <div class="field"><div class="label">Menu Update Process</div><div class="value">${formData.menuUpdateProcess || '—'}</div></div>
+  <div class="field"><div class="label">METRC Frustrations</div><div class="value">${formData.metrcFrustrations || '—'}</div></div>
+  <div class="field"><div class="label">Training Time</div><div class="value">${formData.budtenderTrainingTime || '—'}</div></div>
+</div>
+
+<div class="section">
+  <h2>Money Leaks</h2>
+  <div class="grid">
+    <div class="field"><div class="label">Customer Acquisition</div><div class="value">${formData.customerAcquisition || '—'}</div></div>
+    <div class="field"><div class="label">Peak/Slow Periods</div><div class="value">${formData.peakSlowPeriods || '—'}</div></div>
+    <div class="field"><div class="label">Stock-Out Incidents</div><div class="value">${formData.stockOutIncidents || '—'}</div></div>
+    <div class="field"><div class="label">After-Hours Missed Leads</div><div class="value">${formData.afterHoursMissedLeads || '—'}</div></div>
+    <div class="field"><div class="label">Conversion Rate</div><div class="value">${formData.conversionRate || '—'}</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Stress Points</h2>
+  <div class="field"><div class="label">Primary Concerns</div><div class="value">${concerns}</div></div>
+  <div class="field"><div class="label">METRC Issues</div><div class="value">${formData.metrcCloseCallsOrFines || '—'}</div></div>
+  <div class="field"><div class="label">Regulatory Knowledge</div><div class="value">${formData.regulatoryKnowledge || '—'}</div></div>
+  <div class="field"><div class="label">Key Person Dependencies</div><div class="value">${formData.keyPersonDependencies || '—'}</div></div>
+</div>
+
+<div class="section">
+  <h2>Competition</h2>
+  <div class="field"><div class="label">Nearby Competitors</div><div class="value">${formData.nearbyDispensaries || '—'}</div></div>
+  <div class="field"><div class="label">Google Search Ranking</div><div class="value">${formData.googleSearchRanking || '—'}</div></div>
+  <div class="field"><div class="label">Competitor Strategies</div><div class="value">${formData.competitorStrategies || '—'}</div></div>
+</div>
+
+${formData.demoNotes ? `<div class="section"><h2>Demo Notes</h2><div class="value">${formData.demoNotes}</div></div>` : ''}
+
+<div class="section">
+  <h2>Top 3 Pain Points</h2>
+  ${formData.painPoint1 ? `<div class="pain-box"><strong>1.</strong> ${formData.painPoint1}</div>` : ''}
+  ${formData.painPoint2 ? `<div class="pain-box"><strong>2.</strong> ${formData.painPoint2}</div>` : ''}
+  ${formData.painPoint3 ? `<div class="pain-box"><strong>3.</strong> ${formData.painPoint3}</div>` : ''}
+</div>
+
+<div class="section">
+  <h2>Monthly Impact</h2>
+  <div class="money-box">
+    <div class="amount">$${totalLoss.toLocaleString()}/mo</div>
+    <div class="sublabel">Estimated monthly loss from inefficiencies</div>
+  </div>
+  <div class="grid">
+    <div class="field"><div class="label">Hours Wasted/Month</div><div class="value">${formData.monthlyHoursWasted || '0'} hrs × $25/hr = $${(hoursVal * 25).toLocaleString()}</div></div>
+    <div class="field"><div class="label">Missed Lead Revenue</div><div class="value">$${missedVal.toLocaleString()}/mo</div></div>
+    <div class="field"><div class="label">Ranking Impact</div><div class="value">${formData.rankingImpact || '—'}</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Next Steps</h2>
+  <div class="grid">
+    <div>
+      <div class="field"><div class="label">Lead Temperature</div><div class="value"><span class="temp-badge temp-${formData.leadTemperature || 'warm'}">${(formData.leadTemperature || 'Not set').toUpperCase()}</span></div></div>
+      <div class="field"><div class="label">Follow-Up Date</div><div class="value">${formData.followUpDate || '—'}</div></div>
+    </div>
+    <div>
+      <ul class="checklist">
+        <li class="${formData.followUpEmail ? 'checked' : ''}">Send follow-up email</li>
+        <li class="${formData.sendProposal ? 'checked' : ''}">Send proposal</li>
+        <li class="${formData.addToCRM ? 'checked' : ''}">Add to CRM</li>
+      </ul>
+    </div>
+  </div>
+  ${formData.additionalNotes ? `<div class="summary-box"><div class="label">Additional Notes</div><div class="value">${formData.additionalNotes}</div></div>` : ''}
+</div>
+
+<div class="footer">
+  <img src="https://seamlessflow.ai/assets/website%20homelogo.png" alt="SeamlessFlow" style="width:140px;margin-bottom:8px;">
+  <p><a href="tel:+13477498146">(347) 749-8146</a> | <a href="mailto:info@seamlessflow.ai">info@seamlessflow.ai</a> | <a href="https://seamlessflow.ai">seamlessflow.ai</a></p>
+  <p style="margin-top:6px;">Generated ${new Date().toLocaleDateString()}</p>
+</div>
+</body></html>`);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
 
   const updateField = (field: keyof FormData, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -748,7 +902,7 @@ export default function DiscoveryCall() {
     <main className="form-container">
       <header className="form-header">
         <h1>Discovery Call Generator</h1>
-        <p>SeamlessFlow.ai • Cannabis Dispensary Sales Tool</p>
+        <p>SeamlessFlow.ai • Discovery Call Tool</p>
       </header>
 
       {/* Progress */}
@@ -792,12 +946,9 @@ export default function DiscoveryCall() {
         ) : (
           <button
             className="btn btn-success"
-            onClick={() => {
-              console.log('Form submitted:', formData);
-              alert('Discovery call saved! (Check console for data)');
-            }}
+            onClick={generatePDF}
           >
-            Complete Call ✓
+            📄 Download PDF
           </button>
         )}
       </div>
